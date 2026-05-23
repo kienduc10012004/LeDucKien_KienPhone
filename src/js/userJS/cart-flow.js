@@ -1,84 +1,165 @@
-import { el, state } from "./core.js";
-import { capNhatSoLuongGioHang } from "./product-flow.js";
+import { API, el, state, luuGioHang, capNhatSoLuongGioHang, checkoutUrl } from "./core.js";
+import { formatCurrency, showToast, getImageUrl } from "./ui-flow.js";
 
-export const luuLocalStorage = () => {
-  localStorage.setItem("GIO_HANG_USER", JSON.stringify(state.gioHang));
+const openCart = () => { if (el.popupGioHang) { el.popupGioHang.classList.remove("hidden"); document.body.classList.add("overflow-hidden"); } };
+
+const getQuantity = (product) => {
+  return Number(product.quantity ?? 10);
 };
 
-window.tangSoLuong = (phoneId) => {
-  const item = state.gioHang.find(p => p.id == phoneId);
-  if (item) {
-    item.soLuong += 1;
-    luuLocalStorage();
-    capNhatSoLuongGioHang();
-    renderGioHang();
+const getCheckoutCartUrl = () => {
+  const url = checkoutUrl();
+
+  if (url.includes("?")) {
+    return `${url}&from=cart`;
+  }
+
+  return `${url}?from=cart`;
+};
+
+window.tangSoLuong = async (id) => {
+  const item = state.gioHang.find(p => p.id == id);
+  if (!item) return;
+
+  try {
+    const response = await fetch(`${API}/${id}`);
+    const product = await response.json();
+    const quantity = getQuantity(product);
+
+    if (item.soLuong + 1 > quantity) {
+      alert(`Sản phẩm: ${item.name} ko đủ số lượng!`);
+      return;
+    }
+
+    item.soLuong++;
+    luuGioHang(); capNhatSoLuongGioHang(); renderGioHang(false);
+  } catch (error) {
+    alert("Không thể kiểm tra số lượng sản phẩm!");
   }
 };
 
-window.giamSoLuong = (phoneId) => {
-  const item = state.gioHang.find(p => p.id == phoneId);
-  if (item && item.soLuong > 1) {
-    item.soLuong -= 1;
-    luuLocalStorage();
-    capNhatSoLuongGioHang();
-    renderGioHang();
+window.giamSoLuong = (id) => {
+  const item = state.gioHang.find(p => p.id == id);
+  if (!item || item.soLuong <= 1) return;
+  item.soLuong--;
+  luuGioHang(); capNhatSoLuongGioHang(); renderGioHang(false);
+};
+
+window.xoaSanPham = (id) => {
+  const item = state.gioHang.find(p => p.id == id);
+  state.gioHang = state.gioHang.filter(p => p.id != id);
+  luuGioHang(); capNhatSoLuongGioHang(); renderGioHang(false);
+  showToast(`Đã xóa ${item?.name || "sản phẩm"} khỏi giỏ hàng`, "warning");
+};
+
+window.kiemTraTonKhoVaThanhToan = async () => {
+  if (!state.gioHang.length) {
+    showToast("Giỏ hàng đang trống", "warning");
+    return;
+  }
+
+  try {
+    const response = await fetch(API);
+    const products = await response.json();
+
+    for (let item of state.gioHang) {
+      const product = products.find((p) => p.id == item.id);
+
+      if (!product) {
+        alert(`Không tìm thấy sản phẩm ${item.name}!`);
+        return;
+      }
+
+      const quantity = getQuantity(product);
+
+      if (item.soLuong > quantity) {
+        alert(`Sản phẩm: ${item.name} ko đủ số lượng!`);
+        return;
+      }
+    }
+
+    window.location.href = getCheckoutCartUrl();
+  } catch (error) {
+    alert("Không thể kiểm tra số lượng sản phẩm!");
   }
 };
 
-window.xoaSanPham = (phoneId) => {
-  state.gioHang = state.gioHang.filter(p => p.id != phoneId);
-  luuLocalStorage();
+window.thanhToanDemo = () => {
+  if (!state.gioHang.length) return showToast("Giỏ hàng đang trống", "warning");
+  state.gioHang = [];
+  luuGioHang(); 
   capNhatSoLuongGioHang();
-  renderGioHang();
+  renderGioHang(false);
+  showToast("Đặt hàng demo thành công!");
 };
 
-export const renderGioHang = () => {
-  if (state.gioHang.length === 0) {
-    el.noiDungGioHang.innerHTML = `<p class="py-20 text-center text-gray-400 font-bold">Giỏ hàng trống</p>`;
-  } else {
-    const listHtml = state.gioHang.map(item => `
-      <div class="flex items-center gap-4 p-4 border-b border-gray-50">
-        <img src="${item.img}" class="w-16 h-16 object-contain">
-        <div class="flex-1">
-          <h4 class="font-bold text-sm">${item.name}</h4>
-          <p class="text-blue-600 font-bold text-xs">${item.price.toLocaleString()} đ</p>
+window.thanhToanDemoDetail = () => {
+  showToast("Đặt hàng demo thành công!");
+}
+
+export const renderGioHang = (shouldOpen = true) => {
+  if (!el.noiDungGioHang) return;
+  if (!state.gioHang.length) {
+    el.noiDungGioHang.innerHTML = `
+      <div class="h-full flex flex-col items-center justify-center text-center px-6">
+        <div class="w-24 h-24 rounded-full bg-slate-100 flex items-center justify-center text-4xl mb-5">
+          <i class="fa-solid fa-cart-arrow-down"></i>
         </div>
-        <div class="flex items-center bg-gray-100 rounded-xl p-1">
-          <button onclick="giamSoLuong('${item.id}')" class="w-7 h-7 bg-white rounded-lg shadow-sm ${item.soLuong === 1 ? 'opacity-30' : ''}">-</button>
-          <span class="w-8 text-center text-xs font-black">${item.soLuong}</span>
-          <button onclick="tangSoLuong('${item.id}')" class="w-7 h-7 bg-blue-600 text-white rounded-lg shadow-sm">+</button>
-        </div>
-        <button onclick="xoaSanPham('${item.id}')" class="text-gray-300 hover:text-red-500 ml-2">✕</button>
+        <h3 class="text-xl font-black text-slate-800">Giỏ hàng trống</h3>
+        <p class="text-sm text-slate-400 mt-2 max-w-xs">Hãy thêm sản phẩm yêu thích vào giỏ hàng.</p>
       </div>
-    `).join("");
-
-    const tongTien = state.gioHang.reduce((total, item) => total + (item.price * item.soLuong), 0);
-
-    el.noiDungGioHang.innerHTML = listHtml + `
-      <div class="p-6 bg-slate-50 mt-auto">
-        <div class="mb-4">
-          <p class="text-[10px] font-black text-gray-400 uppercase mb-3">Phương thức thanh toán</p>
-          <div class="grid grid-cols-2 gap-2">
-            <label class="cursor-pointer">
-              <input type="radio" name="payment" class="hidden peer" checked>
-              <div class="p-3 border-2 border-gray-200 rounded-xl text-center peer-checked:border-blue-600 peer-checked:bg-blue-50">
-                <span class="text-[10px] font-bold">TIỀN MẶT (COD)</span>
-              </div>
-            </label>
-            <label class="cursor-pointer">
-              <input type="radio" name="payment" class="hidden peer">
-              <div class="p-3 border-2 border-gray-200 rounded-xl text-center peer-checked:border-blue-600 peer-checked:bg-blue-50">
-                <span class="text-[10px] font-bold">CHUYỂN KHOẢN</span>
-              </div>
-            </label>
-          </div>
-        </div>
-        <div class="flex justify-between items-center mb-6">
-          <span class="text-gray-500 font-bold">TỔNG TIỀN:</span>
-          <span class="text-xl font-black text-blue-600">${tongTien.toLocaleString()} đ</span>
-        </div>
-        <button onclick="alert('Đã gửi đơn hàng!')" class="w-full bg-blue-600 text-white font-black py-4 rounded-2xl shadow-lg hover:bg-blue-700 transition-all">THANH TOÁN NGAY</button>
-      </div>`;
+    `;
+    if (shouldOpen) openCart();
+    return;
   }
-  el.popupGioHang.classList.remove("hidden");
+  const tamTinh = state.gioHang.reduce((s, i) => s + Number(i.price) * i.soLuong, 0);
+  const giam = Math.round(tamTinh * 0.05);
+  const ship = tamTinh >= 5000000 ? 0 : 30000;
+  const tong = tamTinh - giam + ship;
+  el.noiDungGioHang.innerHTML = state.gioHang.map(item => `
+    <div class="flex gap-4 p-5 border-b border-slate-100">
+      <div class="w-20 h-20 rounded-2xl bg-slate-50 flex items-center justify-center shrink-0">
+        <img src="${getImageUrl(item.img)}" class="w-16 h-16 object-contain">
+      </div>
+      <div class="flex-1">
+        <h4 class="font-black text-sm line-clamp-2">${item.name}</h4>
+        <p class="text-blue-600 font-black text-sm mt-1">${formatCurrency(item.price)}</p>
+        <div class="flex items-center justify-between mt-3">
+          <div class="flex items-center bg-slate-100 rounded-xl p-1">
+            <button onclick="giamSoLuong('${item.id}')" class="w-8 h-8 bg-white rounded-lg font-black cursor-pointer hover:bg-black hover:text-white duration-100">-</button>
+            <span class="w-9 text-center text-xs font-black">${item.soLuong}</span>
+            <button onclick="tangSoLuong('${item.id}')" class="w-8 h-8 bg-blue-600 text-white rounded-lg font-black cursor-pointer hover:opacity-80 duration-100">+</button>
+          </div>
+          <button onclick="xoaSanPham('${item.id}')" class="w-8 h-8 rounded-xl bg-red-50 text-red-500 hover:bg-red-500 hover:text-white font-bold cursor-pointer duration-100"> X </button>
+        </div>
+      </div>
+    </div>
+  `).join("") + `
+    <div class="sticky bottom-0 bg-white border-t p-6 shadow-[0_-20px_40px_rgba(15,23,42,0.06)]">
+      <div class="space-y-3 text-sm mb-5">
+        <div class="flex justify-between text-slate-500 font-bold">
+          <span>Tạm tính</span>
+          <span>${formatCurrency(tamTinh)}</span>
+        </div>
+        <div class="flex justify-between text-emerald-600 font-bold">
+          <span>Giảm Flash Sale 5%</span>
+          <span>-${formatCurrency(giam)}</span>
+        </div>
+        <div class="flex justify-between text-slate-500 font-bold">
+          <span>Phí vận chuyển</span>
+          <span>${ship ? formatCurrency(ship) : "Miễn phí"}</span>
+        </div>
+        <div class="h-px bg-slate-100"></div>
+        <div class="flex justify-between items-center">
+          <span class="font-black">Tổng thanh toán</span>
+          <span class="text-2xl font-black text-blue-600">${formatCurrency(tong)}</span>
+        </div>
+      </div>
+      <button onclick="kiemTraTonKhoVaThanhToan()" class="w-full cursor-pointer duration-100 bg-blue-600 text-white font-black py-4 px-4 rounded-2xl hover:bg-blue-700">
+        THANH TOÁN NGAY
+      </button>
+    </div>
+  `;
+
+  if (shouldOpen) openCart();
 };

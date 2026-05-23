@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>KienPhone - Quản lý sản phẩm</title>
+    <link rel="icon" href="../images/logoweb.png" />
+    <link rel="stylesheet" href="../output.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.11.0/axios.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" />
+  </head>
+
+  <body class="bg-slate-50 min-h-screen font-sans md:pb-20 lg:pb-0">
+    <!-- small mobile menu button -->
+    <button
+      id="btnOpenAdminMenu"
+      class="md:hidden fixed bottom-5 right-5 z-[70] w-14 h-14 rounded-full bg-indigo-600 text-white shadow-2xl font-black"
+    >
+      <i class="fa-solid fa-bars"></i>
+    </button>
+    <!-- small mobile overlay -->
+    <div
+      id="adminMenuOverlay"
+      class="hidden md:hidden fixed inset-0 z-[80] bg-black/50"
+    ></div>
+
+    <!-- small mobile drawer -->
+    <div id="adminMobileDrawer" class="hidden md:hidden fixed top-0 left-0 z-[90] h-[70vh] w-[70%] bg-slate-950 text-white rounded-br-3xl shadow-2xl p-5">
+      <button id="btnCloseAdminMenu" class="absolute bottom-10 text-xl cursor-pointer left-[50%] translate-x-[-50%] w-20 h-20 rounded-xl bg-white/10 hover:bg-red-500 duration-100">
+        X
+      </button>
+
+      <a href="./dashboard.html" class="flex items-center gap-3 mt-3 mb-8">
+        <img src="../images/logoweb.png" class="w-12" alt="" />
+        <div>
+          <h1 class="text-xl font-black">KienPhone</h1>
+          <p class="text-xs text-slate-400">Admin Panel</p>
+        </div>
+      </a>
+
+      <nav class="space-y-2 font-bold text-sm">
+        <a href="./dashboard.html" class="block px-4 py-3 rounded-xl hover:bg-white/10">
+          Dashboard
+        </a>
+
+        <a href="./manage-product.html" class="block px-4 py-3 rounded-xl bg-indigo-600">
+          Quản lý sản phẩm
+        </a>
+
+        <a href="./manage-order.html" class="block px-4 py-3 rounded-xl hover:bg-white/10">
+          Quản lý đơn hàng
+        </a>
+
+        <a href="./manage-user.html" class="block px-4 py-3 rounded-xl hover:bg-white/10">
+          Quản lý người dùng
+        </a>
+
+        <a href="./admin-profile.html" class="block px-4 py-3 rounded-xl hover:bg-white/10">
+          Thông tin admin
+        </a>
+      </nav>
+    </div>
+
+    <!-- mobile admin menu -->
+    <div class="hidden md:block lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-slate-950 text-white border-t border-slate-800">
+      <div class="grid grid-cols-5 text-[11px] font-bold">
+        <a href="./dashboard.html" class="py-3 flex flex-col items-center gap-1 text-slate-300 hover:text-white">
+          <i class="fa-solid fa-chart-line"></i>
+          <span>Dashboard</span>
+        </a>
+
+        <a href="./manage-product.html" class="py-3 flex flex-col items-center gap-1 text-slate-300 hover:text-white">
+          <i class="fa-solid fa-mobile-screen"></i>
+          <span>Sản phẩm</span>
+        </a>
+
+        <a href="./manage-order.html" class="py-3 flex flex-col items-center gap-1 text-slate-300 hover:text-white">
+          <i class="fa-solid fa-receipt"></i>
+          <span>Đơn hàng</span>
+        </a>
+
+        <a href="./manage-user.html" class="py-3 flex flex-col items-center gap-1 text-indigo-400">
+          <i class="fa-solid fa-users"></i>
+          <span>User</span>
+        </a>
+
+        <a href="./admin-profile.html" class="py-3 flex flex-col items-center gap-1 text-slate-300 hover:text-white">
+          <i class="fa-solid fa-user-gear"></i>
+          <span>Admin</span>
+        </a>
+      </div>
+    </div>
+    <div class="flex min-h-screen">
+      <aside class="w-64 bg-slate-950 text-white hidden lg:flex flex-col p-5">
+        <a href="./dashboard.html" class="flex items-center gap-3 mb-8">
+          <img src="../images/logoweb.png" class="w-12" alt="" />
+          <div><h1 class="text-xl font-black">KienPhone</h1><p class="text-xs text-slate-400">Admin Panel</p></div>
+        </a>
+        <nav class="space-y-2 font-bold text-sm">
+          <a href="./dashboard.html" class="block px-4 py-3 rounded-xl hover:bg-white/10">Dashboard</a>
+          <a href="./manage-product.html" class="block px-4 py-3 rounded-xl bg-indigo-600">Quản lý sản phẩm</a>
+          <a href="./manage-order.html" class="block px-4 py-3 rounded-xl hover:bg-white/10">Quản lý đơn hàng</a>
+          <a href="./manage-user.html" class="block px-4 py-3 rounded-xl hover:bg-white/10">Quản lý người dùng</a>
+          <a href="./admin-profile.html" class="block px-4 py-3 rounded-xl hover:bg-white/10">Thông tin admin</a>
+        </nav>
+      </aside>
+
+      <!-- mobile admin menu -->
+      <div class="hidden md:block lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-slate-950 text-white border-t border-slate-800">
+        <div class="grid grid-cols-5 text-[11px] font-bold">
+          <a href="./dashboard.html" class="py-3 flex flex-col items-center gap-1 text-slate-300 hover:text-white">
+            <i class="fa-solid fa-chart-line"></i>
+            <span>Dashboard</span>
+          </a>
+
+          <a href="./manage-product.html" class="py-3 flex flex-col items-center gap-1 text-slate-300 hover:text-white">
+            <i class="fa-solid fa-mobile-screen"></i>
+            <span>Sản phẩm</span>
+          </a>
+
+          <a href="./manage-order.html" class="py-3 flex flex-col items-center gap-1 text-slate-300 hover:text-white">
+            <i class="fa-solid fa-receipt"></i>
+            <span>Đơn hàng</span>
+          </a>
+
+          <a href="./manage-user.html" class="py-3 flex flex-col items-center gap-1 text-indigo-400">
+            <i class="fa-solid fa-users"></i>
+            <span>User</span>
+          </a>
+
+          <a href="./admin-profile.html" class="py-3 flex flex-col items-center gap-1 text-slate-300 hover:text-white">
+            <i class="fa-solid fa-user-gear"></i>
+            <span>Admin</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="flex-1">
+        <header class="bg-white border-b border-slate-200 p-4 sticky top-0 z-10">
+          <div class="flex justify-between items-center">
+            <div><h2 class="text-2xl font-black">Quản lý sản phẩm</h2><p class="text-sm text-slate-400 font-bold">Thêm, sửa, xóa sản phẩm</p></div>
+            <button id="btnlogout" class="bg-indigo-600 text-white px-4 py-2 rounded-xl font-bold cursor-pointer hover:bg-indigo-700 duration-100">Đăng xuất</button>
+          </div>
+        </header>
+
+        <main class="p-5 lg:p-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <section class="lg:col-span-4">
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 sticky top-24">
+              <h2 class="text-lg font-bold mb-6">Thông tin sản phẩm</h2>
+              <form id="productForm" class="space-y-4">
+                <div>
+                  <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Tên máy</label>
+                  <input id="name" type="text" class="w-full border rounded-xl px-4 py-2.5 outline-none bg-slate-50" placeholder="Tên điện thoại" />
+                  <p id="error-name" class="error-msg text-red-500 text-sm mt-1"></p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Giá bán</label>
+                    <input id="price" type="number" class="w-full border rounded-xl px-4 py-2.5 outline-none bg-slate-50" placeholder="Giá" />
+                    <p id="error-price" class="error-msg text-red-500 text-sm mt-1"></p>
+                  </div>
+                  <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Số lượng</label>
+                    <input id="quantity" type="number" class="w-full border rounded-xl px-4 py-2.5 outline-none bg-slate-50" placeholder="Số lượng" />
+                    <p id="error-quantity" class="error-msg text-red-500 text-sm mt-1"></p>
+                  </div>
+                </div>
+
+                <div>
+                  <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Hãng</label>
+                  <div class="flex gap-2">
+                    <select id="type" class="w-full border rounded-xl px-4 py-2.5 outline-none bg-slate-50 cursor-pointer">
+                      <option value="">Chọn loại</option>
+                      <option value="iPhone">Apple iPhone</option>
+                      <option value="Samsung">Samsung Galaxy</option>
+                      <option value="OPPO">OPPO</option>
+                      <option value="Vivo">Vivo</option>
+                      <option value="Realme">Realme</option>
+                      <option value="Asus">Asus ROG</option>
+                      <option value="Nokia">Nokia</option>
+                    </select>
+                    <button id="btnDeleteType" type="button" class="bg-red-500 cursor-pointer duration-100 hover:bg-red-600 text-white font-bold px-4 rounded-xl py-2 whitespace-nowrap">
+                      Xóa hãng
+                    </button>
+                  </div>
+                  <p id="error-type" class="error-msg text-red-500 text-sm mt-1"></p>
+                </div>
+
+                
+
+                <div class="flex gap-2">
+                  <input id="newType" type="text" class="w-full border rounded-xl px-5 duration-100 py-2.5 outline-none bg-slate-50 cursor-pointer" placeholder="Nhập hãng mới" />
+                  <button id="btnAddType" type="button" class="bg-slate-500 hover:bg-slate-600 text-white px-8 py-2 cursor-pointer duration-100 rounded-xl font-bold">Thêm</button>
+                </div>
+                
+                <div>
+                  <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Tên file ảnh hoặc link ảnh</label>
+                  <input id="img" type="text" class="w-full border rounded-xl px-4 py-2.5 outline-none bg-slate-50" placeholder="01-iPhone.png" />
+                  <p id="error-img" class="error-msg text-red-500 text-sm mt-1"></p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                  <div><label class="block text-xs font-bold text-slate-400 uppercase mb-1">Màn hình</label><input id="screen" type="text" class="w-full border rounded-xl px-4 py-2.5 outline-none bg-slate-50" /></div>
+                  <div><label class="block text-xs font-bold text-slate-400 uppercase mb-1">Mô tả</label><input id="desc" type="text" class="w-full border rounded-xl px-4 py-2.5 outline-none bg-slate-50" /></div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                  <div><label class="block text-xs font-bold text-slate-400 uppercase mb-1">Cam sau</label><input id="backCamera" type="text" class="w-full border rounded-xl px-4 py-2.5 outline-none bg-slate-50" /></div>
+                  <div><label class="block text-xs font-bold text-slate-400 uppercase mb-1">Cam trước</label><input id="frontCamera" type="text" class="w-full border rounded-xl px-4 py-2.5 outline-none bg-slate-50" /></div>
+                </div>
+
+                <div class="border border-orange-100 bg-orange-50 rounded-2xl p-4 space-y-4">
+                  <h2 class="font-black text-orange-600">
+                    Quà tặng ưu đãi
+                  </h2>
+
+                  <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase mb-1">
+                      Tên quà tặng
+                    </label>
+                    <input
+                      id="giftName"
+                      type="text"
+                      class="w-full border rounded-xl px-4 py-2.5 outline-none bg-white"
+                      placeholder="Ví dụ: Tai nghe không dây hoặc Không"
+                    />
+                    <p id="error-giftName" class="error-msg text-red-500 text-sm mt-1"></p>
+                  </div>
+
+                  <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase mb-1">
+                      Hình ảnh quà tặng
+                    </label>
+                    <input
+                      id="giftImg"
+                      type="text"
+                      class="w-full border rounded-xl px-4 py-2.5 outline-none bg-white"
+                      placeholder="Ví dụ: tainghe.png hoặc Không"
+                    />
+                    <p id="error-giftImg" class="error-msg text-red-500 text-sm mt-1"></p>
+                  </div>
+</div>
+
+                <div class="flex gap-2 pt-4">
+                  <button type="submit" id="btnSave" class="flex-1 bg-indigo-600 text-white font-bold py-3 rounded-xl hover:bg-indigo-700 cursor-pointer duration-100">Tạo mới</button>
+                  <button type="button" id="btnUpdate" class="flex-1 bg-amber-500 cursor-pointer duration-100 hover:bg-amber-600 text-white font-bold py-3 rounded-xl hidden">Cập nhật</button>
+                  <button type="button" id="btnReset" class="px-5 bg-slate-200 cursor-pointer duration-100 hover:bg-slate-300 text-slate-600 font-bold rounded-xl py-3">Reset</button>
+                </div>
+              </form>
+            </div>
+          </section>
+
+          <section class="lg:col-span-8">
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+              <div class="p-4 border-b flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-50/50">
+                <h2 class="font-bold">Danh sách sản phẩm</h2>
+                <div class="flex gap-2 bg-white p-1 rounded-xl border border-slate-200 w-full sm:w-auto">
+                  <input id="keyword" type="text" placeholder="Tìm kiếm..." class="px-3 py-1 text-sm outline-none w-full sm:w-52" />
+                  <button id="btnSearch" class="bg-slate-500 hover:bg-slate-700 text-white px-4 py-1.5 rounded-lg text-sm font-bold">Tìm</button>
+                </div>
+              </div>
+              <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse min-w-[760px]">
+                  <thead>
+                    <tr class="text-slate-400 text-[11px] uppercase tracking-widest font-bold border-b">
+                      <th class="py-4 px-6">ID</th>
+                      <th class="py-4 px-6">Sản phẩm</th>
+                      <th class="py-4 px-6 text-right">Giá</th>
+                      <th class="py-4 px-6 text-center">SL</th>
+                      <th class="py-4 px-6">Loại</th>
+                      <th class="py-4 px-6 text-center">Thao tác</th>
+                    </tr>
+                  </thead>
+                  <tbody id="productTableBody"></tbody>
+                </table>
+              </div>
+              <div id="pagination" class="p-6 border-t flex justify-center gap-2"></div>
+            </div>
+          </section>
+        </main>
+      </div>
+    </div>
+
+    <script type="module" src="../js/admin.js"></script>
+  </body>
+</html>
